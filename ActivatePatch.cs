@@ -45,13 +45,20 @@ namespace Framesaver
             return true;
         }
 
+        public static bool isOnOddFrame()
+        {
+            return ((Time.frameCount % 2) == 1);
+        }
+
         // Activate more efficiently activates a bot by avoiding the more
         // complicated pathfinding calculations that are done in vanilla,
         // as well as spreading them out throughout the frames.
         public static async void Activate(BotOwner bot)
         {
             var actualActivate = typeof(BotOwner)?.GetMethod("method_10", BindingFlags.Instance | BindingFlags.NonPublic);
-            Logger.LogInfo(String.Format("Taking control of bot {0}.", bot.ProfileId));
+            var spawnedOnOddFrame = isOnOddFrame();
+
+            Logger.LogInfo(String.Format("Framesaver is taking control of bot {0}, spawned on odd frame: {1}", bot.ProfileId, spawnedOnOddFrame));
 
             while (bot.WeaponManager == null || !bot.WeaponManager.IsReady)
             {
@@ -61,12 +68,12 @@ namespace Framesaver
             bot.Transform.position = bot.BotsGroup.BotZone.SpawnPoints.RandomElement<ISpawnPoint>().Position + Vector3.up * 0.5f;
             actualActivate.Invoke(bot, null);
 
-            await RunLoop(bot);
+            await RunLoop(bot, spawnedOnOddFrame);
         }
 
         // RunLoop is a more efficient way of running the Bot code so that it
         // doesn't take up all the time in a frame.
-        public static async Task RunLoop(BotOwner bot)
+        public static async Task RunLoop(BotOwner bot, bool spawnedOnOddFrame)
         {
             var nextGoalCalcTime = Time.time;
 
@@ -95,7 +102,9 @@ namespace Framesaver
                     nextGoalCalcTime = Time.time + 3.0f;
                 }
 
-                if ((Time.frameCount % 4) == 1)
+                // Bots spawned on odd frames will only update on odd frames,
+                // and similarly with bots spawned on even frames.
+                if (spawnedOnOddFrame ^ isOnOddFrame())
                 {
                     bot.HeadData.ManualUpdate();
                     bot.Tilt.ManualUpdate();
@@ -111,29 +120,23 @@ namespace Framesaver
                     bot.Memory.ManualUpdate(Time.deltaTime);
                     bot.Settings.UpdateManual();
                     bot.BotRequestController.TryToFind();
-                }
 
-                if ((Time.frameCount % 2) == 1)
-                {
-                    await Task.Run(() =>
+                    bot.ShootData.ManualUpdate();
+                    bot.DogFight.ManualUpdate();
+                    bot.RecoilData.LosingRecoil();
+                    bot.AimingData.PermanentUpdate();
+
+                    if (bot.WeaponManager != null)
                     {
-                        bot.ShootData.ManualUpdate();
-                        bot.DogFight.ManualUpdate();
-                        bot.RecoilData.LosingRecoil();
-                        bot.AimingData.PermanentUpdate();
+                        bot.WeaponManager.ManualUpdate();
+                    }
 
-                        if (bot.WeaponManager != null)
-                        {
-                            bot.WeaponManager.ManualUpdate();
-                        }
-
-                        bot.Mover.ManualUpdate();
-                        if (bot.GetPlayer.UpdateQueue == EUpdateQueue.Update)
-                        {
-                            bot.Mover.ManualFixedUpdate();
-                            bot.Steering.ManualFixedUpdate();
-                        }
-                    });
+                    bot.Mover.ManualUpdate();
+                    if (bot.GetPlayer.UpdateQueue == EUpdateQueue.Update)
+                    {
+                        bot.Mover.ManualFixedUpdate();
+                        bot.Steering.ManualFixedUpdate();
+                    }
                 }
 
                 await Task.Yield();
@@ -148,6 +151,22 @@ namespace Framesaver
         protected override MethodBase GetTargetMethod()
         {
             return typeof(BotsClass)?.GetMethod("UpdateByUnity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        }
+
+        [PatchPrefix]
+        public static bool PatchPrefix()
+        {
+            return !Plugin.Enabled.Value;
+        }
+    }
+
+    // MoverPatch removes an expensive debug calculation in the AI updates that
+    // doesn't actually need to run.
+    public class MoverPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return typeof(GClass406)?.GetMethod("method_4", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
 
         [PatchPrefix]

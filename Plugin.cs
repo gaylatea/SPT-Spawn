@@ -17,6 +17,7 @@ namespace Framesaver
 
             new UpdatePatch().Enable();
             new ActivatePatch().Enable();
+            new MoverPatch().Enable();
         }
     }
 }
