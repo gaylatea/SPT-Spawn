@@ -28,7 +28,7 @@ namespace Gaylatea
                     }
 
                     // TODO: choose a random WildSpawnType and EPlayerSide.
-                    var botData = new GClass622(EPlayerSide.Savage, WildSpawnType.assault, BotDifficulty.normal, 0f, null);
+                    var botData = new GClass624(EPlayerSide.Savage, WildSpawnType.assault, BotDifficulty.normal, 0f, null);
                     game.BotsController.BotSpawner.ActivateBotsWithoutWave(1, botData);
                     Plugin.logger.LogWarning("Spawned in a new bot at a random spot in the map.");
                 }

@@ -24,12 +24,12 @@ namespace Gaylatea
                 return p.ParseJsonTo<BotsResponseWrapper>().data;
             }
 
-            class ConditionsWrapper
+            struct ConditionsWrapper
             {
                 public List<WaveInfo> conditions;
             }
 
-            class BotsResponseWrapper
+            struct BotsResponseWrapper
             {
                 public Profile[] data;
             }
@@ -42,7 +42,7 @@ namespace Gaylatea
         {
             protected override MethodBase GetTargetMethod()
             {
-                return AccessTools.TypeByName("Class223").GetMethod("LoadBots", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                return AccessTools.TypeByName("Class224").GetMethod("LoadBots", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             }
 
             [PatchPrefix]
