@@ -21,6 +21,9 @@ namespace Gaylatea
                 logger = Logger;
                 Spawn = Config.Bind(KeybindSectionName, "Spawn a Bot", new KeyboardShortcut(KeyCode.Equals), "Spawns a random bot in front of the player.");
 
+                // Load in the bot spawning optimization patches.
+                new UseAKIHTTPForBotLoadingPatch().Enable();
+
                 Hook = new GameObject("Gaylatea.Spawn");
                 Hook.AddComponent<Controller>();
                 DontDestroyOnLoad(Hook);
