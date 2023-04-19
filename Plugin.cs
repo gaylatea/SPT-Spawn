@@ -23,6 +23,11 @@ namespace Gaylatea
 
                 // Load in the bot spawning optimization patches.
                 new UseAKIHTTPForBotLoadingPatch().Enable();
+                new DisableBotBrainUpdatesPatch().Enable();
+                new DisableBotUpdatesPatch().Enable();
+                new ActivatePatch().Enable();
+                new OptimizeBotStateMachineTransitionsPatch().Enable();
+                new MoverPatch().Enable();
 
                 Hook = new GameObject("Gaylatea.Spawn");
                 Hook.AddComponent<Controller>();

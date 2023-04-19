@@ -1,8 +1,9 @@
 using Comfort.Common;
 
-using EFT;
-
 using UnityEngine;
+
+using EFT;
+using EFT.Communications;
 
 namespace Gaylatea
 {
@@ -10,27 +11,21 @@ namespace Gaylatea
     {
         public class Controller : MonoBehaviour
         {
-            Player player
-            { get => gameWorld.AllPlayers[0]; }
-
-            GameWorld gameWorld
-            { get => Singleton<GameWorld>.Instance; }
-
             IBotGame game { get => (IBotGame)Singleton<AbstractGame>.Instance; }
 
             void Update()
             {
                 if (Input.GetKeyDown(Plugin.Spawn.Value.MainKey))
                 {
-                    if(gameWorld == null) {
-                        Plugin.logger.LogWarning("Not spawning because there's no game world to spawn into.");
+                    if(game == null) {
+                        NotificationManagerClass.DisplayMessageNotification("Not spawning because there's no game to spawn into.", ENotificationDurationType.Default, ENotificationIconType.Alert);
                         return;
                     }
 
-                    // TODO: choose a random WildSpawnType and EPlayerSide.
+                    // Note that the AKI server might rewrite this bot to be a PMC.
                     var botData = new GClass624(EPlayerSide.Savage, WildSpawnType.assault, BotDifficulty.normal, 0f, null);
                     game.BotsController.BotSpawner.ActivateBotsWithoutWave(1, botData);
-                    Plugin.logger.LogWarning("Spawned in a new bot at a random spot in the map.");
+                    NotificationManagerClass.DisplayMessageNotification("Spawned in a new bot at a random spot in the map.", ENotificationDurationType.Default, ENotificationIconType.Alert);
                 }
             }
         }
